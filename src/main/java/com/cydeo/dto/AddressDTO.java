@@ -23,11 +23,13 @@ public class AddressDTO {
 
     private AddressType addressType;
 
+    @JsonBackReference(value = "student-address-reference")
     private StudentDTO student;
 
+    @JsonBackReference(value = "parent-address-reference")
     private ParentDTO parent;
 
-    @JsonBackReference
+    @JsonBackReference(value = "teacher-address-reference")
     private TeacherDTO teacher;
 
     private Integer currentTemperature;
