@@ -5,9 +5,12 @@ import com.cydeo.dto.AddressDTO;
 import com.cydeo.dto.weather.Current;
 import com.cydeo.dto.weather.WeatherResponse;
 import com.cydeo.entity.Address;
+import com.cydeo.exception.NotFoundException;
 import com.cydeo.util.MapperUtil;
 import com.cydeo.repository.AddressRepository;
 import com.cydeo.service.AddressService;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.data.crossstore.ChangeSetPersister;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -16,7 +19,8 @@ import java.util.stream.Collectors;
 
 @Service
 public class AddressServiceImpl implements AddressService {
-
+    @Value("${access_key}")
+    private String accessKey;
     private final AddressRepository addressRepository;
     private final MapperUtil mapperUtil;
     private final WeatherApiClient weatherApiClient;
@@ -38,19 +42,21 @@ public class AddressServiceImpl implements AddressService {
     @Override
     public AddressDTO findById(Long id) throws Exception {
         Address foundAddress = addressRepository.findById(id)
-                .orElseThrow(() -> new Exception("No Address Found!"));
+                .orElseThrow(() -> new NotFoundException("No Address Found!"));
 
         AddressDTO addressDTO = mapperUtil.convert(foundAddress, new AddressDTO());
         //Get the current temperature and set based on city, then return dto.
         addressDTO.setCurrentTemperature(retrieveTemperatureByCity(addressDTO.getCity()));
-
         return addressDTO;
 
     }
 
     private Integer retrieveTemperatureByCity(String city) {
-        return weatherApiClient.getCurrentWeather("509094dfd4045a5b50ba0e5c3059a5d7",city)
-               .getCurrent().getTemperature();
+        WeatherResponse currentWeather = weatherApiClient.getCurrentWeather(accessKey, city);
+        if (currentWeather == null || currentWeather.getCurrent() == null) {
+            return null;
+        }
+            return currentWeather.getCurrent().getTemperature();
 
     }
 
@@ -58,7 +64,7 @@ public class AddressServiceImpl implements AddressService {
     public AddressDTO update(AddressDTO addressDTO) throws Exception {
 
         addressRepository.findById(addressDTO.getId())
-                .orElseThrow(() -> new Exception("No Address Found!"));
+                .orElseThrow(() -> new NotFoundException("No Address Found!"));
 
         Address addressToSave = mapperUtil.convert(addressDTO, new Address());
 
