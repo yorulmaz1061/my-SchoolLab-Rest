@@ -1,17 +1,13 @@
 package com.cydeo.controller;
 
-import com.cydeo.dto.ParentDTO;
-import com.cydeo.dto.ResponseWrapper;
-import com.cydeo.dto.StudentDTO;
-import com.cydeo.dto.TeacherDTO;
+import com.cydeo.dto.*;
+import com.cydeo.service.AddressService;
 import com.cydeo.service.ParentService;
 import com.cydeo.service.StudentService;
 import com.cydeo.service.TeacherService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
@@ -21,11 +17,13 @@ public class SchoolController {
     private final TeacherService teacherService;
     private final StudentService studentService;
     private final ParentService parentService;
+    private final AddressService addressService;
 
-    public SchoolController(TeacherService teacherService, StudentService studentService, ParentService parentService) {
+    public SchoolController(TeacherService teacherService, StudentService studentService, ParentService parentService, AddressService addressService) {
         this.teacherService = teacherService;
         this.studentService = studentService;
         this.parentService = parentService;
+        this.addressService = addressService;
     }
 
    @GetMapping("/teachers")
@@ -47,6 +45,21 @@ public class SchoolController {
                 .header("Parent","Returned")
                 .body(responseWrapper);
     }
+    @GetMapping("/address/{addressId}")
+    public ResponseEntity<ResponseWrapper> getAddressById(@PathVariable("addressId") long addressId) throws Exception {
+        AddressDTO addressDTO = addressService.findById(addressId);
+        ResponseWrapper responseWrapper = new ResponseWrapper("Address "+addressId+" is successfully retrieved", addressDTO);
+        return ResponseEntity.status(HttpStatus.OK).body(responseWrapper);
+    }
+    @PutMapping("/address/{addressId}")
+    public AddressDTO updateAddress(@PathVariable("addressId") long addressId, @RequestBody AddressDTO addressDTO) throws Exception {
+        addressDTO.setId(addressId);
+        AddressDTO updateAddress = addressService.update(addressDTO);
+        return updateAddress;
+
+    }
+
+
     
 
 }
