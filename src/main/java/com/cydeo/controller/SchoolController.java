@@ -1,6 +1,7 @@
 package com.cydeo.controller;
 
 import com.cydeo.dto.*;
+import com.cydeo.entity.Teacher;
 import com.cydeo.service.AddressService;
 import com.cydeo.service.ParentService;
 import com.cydeo.service.StudentService;
@@ -9,6 +10,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import javax.validation.Valid;
 import java.util.List;
 
 @RestController
@@ -40,10 +42,11 @@ public class SchoolController {
     public ResponseEntity<ResponseWrapper> getParents() {
         List<ParentDTO> parentDTOS= parentService.findAll();
 
-        ResponseWrapper responseWrapper = new ResponseWrapper("parents are successfully retrieved", parentDTOS);
-        return ResponseEntity.status(HttpStatus.ACCEPTED)
+        return ResponseEntity
+                .status(HttpStatus.ACCEPTED)
                 .header("Parent","Returned")
-                .body(responseWrapper);
+                .body(new ResponseWrapper(true,"parents are successfully retrieved.",
+                        HttpStatus.ACCEPTED.value(),parentService.findAll()));
     }
     @GetMapping("/address/{addressId}")
     public ResponseEntity<ResponseWrapper> getAddressById(@PathVariable("addressId") long addressId) throws Exception {
@@ -58,6 +61,20 @@ public class SchoolController {
         return updateAddress;
 
     }
+    @PostMapping("/teachers")
+    public ResponseEntity<ResponseWrapper> createTeacher(@Valid @RequestBody TeacherDTO teacherDTO){
+        TeacherDTO teacher = teacherService.createTeacher(teacherDTO);
+
+        ResponseWrapper responseWrapper = new ResponseWrapper(true,"Teacher is created."
+                ,HttpStatus.CREATED.value(),teacher);
+
+        return ResponseEntity.status(HttpStatus.CREATED)
+                .header("teacherId",String.valueOf(teacher.getId()))
+                .body(responseWrapper);
+
+    }
+
+
 
 
     
